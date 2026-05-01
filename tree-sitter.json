@@ -1,0 +1,27 @@
+{
+  "grammars": [
+    {
+      "name": "grain",
+      "camelcase": "Grain",
+      "scope": "source.grain",
+      "path": ".",
+      "file-types": [
+        "gr"
+      ],
+      "highlights": "queries/highlights.scm"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Grain grammar for tree-sitter"
+  },
+  "bindings": {
+    "c": true,
+    "go": true,
+    "node": true,
+    "python": true,
+    "rust": true,
+    "swift": true
+  }
+}
