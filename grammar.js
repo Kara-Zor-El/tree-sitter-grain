@@ -71,6 +71,7 @@ module.exports = grammar({
   ],
 
   conflicts: $ => [
+    [$.module_header, $._module_body],
     [$._simple_expression, $.constant_pattern],
     [$.variable_pattern, $.qualified_identifier],
     [$.list_expression, $.list_pattern],
@@ -90,10 +91,16 @@ module.exports = grammar({
   ],
 
   rules: {
-    program: $ => seq(
-      optional($.attributes),
-      $.module_header,
-      optional($._toplevel_statements),
+    program: $ => choice(
+      prec(
+        2,
+        seq(
+          optional($.attributes),
+          $.module_header,
+          optional($._toplevel_statements),
+        ),
+      ),
+      prec(1, repeat1($._toplevel_statement)),
     ),
 
     module_header: $ => seq('module', field('name', $.upper_identifier)),
@@ -1007,23 +1014,124 @@ module.exports = grammar({
 
     line_comment: $ => token(seq('//', /.*/)),
 
-    _comment_body: $ => repeat1(choice(
-      $.documentation_tag,
-      token(/[^@*]+/),
+    _doc_margin_star_prefix: $ => token(prec(2, /\r?\n[ \t]+\*/)),
+
+    doc_comment_margin: $ => choice(
+      prec(3, seq($._doc_margin_star_prefix, token(/\r?\n/))),
+      prec(3, seq($._doc_margin_star_prefix, token(/[ \t]+/))),
+      prec(2, $._doc_margin_star_prefix),
+    ),
+
+    doc_content_text: $ => choice(
+      token(/\r?\n[ \t]*\r?\n/),
+      token(/[^@\r\n*]+/),
       token(/\*[^/]/),
-    )),
+      token(/\r?\n/),
+    ),
 
-    documentation_tag: $ => token(choice(
-      '@param',
-      '@returns',
-      '@throws',
+    _doc_comment_line: $ => choice($.doc_comment_margin, $.doc_content_text),
+
+    doc_preamble: $ => repeat1($._doc_comment_line),
+
+    doc_body_multiline: $ => repeat1($._doc_comment_line),
+
+    doc_tag_name: $ => token(/[a-zA-Z_][a-zA-Z0-9_-]*/),
+
+    semver_valid: $ => token(
+      /v?[0-9]+\.[0-9]+\.[0-9]+(?:-(?:[0-9.\-]|[\x41-\x7a])*(?:\+(?:[0-9\-]|[\x41-\x7a])*)?)?/,
+    ),
+
+    semver_invalid: $ => token(/[^@\s*:]+/),
+
+    since_trailing: $ => repeat1($._doc_comment_line),
+
+    doc_since_body: $ => choice(
+      seq($.semver_valid, $.since_trailing),
+      $.semver_valid,
+      seq($.semver_invalid, $.since_trailing),
+      $.semver_invalid,
+    ),
+
+    history_description: $ => seq(':', repeat1($._doc_comment_line)),
+
+    doc_history_body: $ => choice(
+      seq($.semver_valid, $.history_description),
+      $.semver_valid,
+      seq($.semver_invalid, $.history_description),
+      $.semver_invalid,
+    ),
+
+    doc_example_inline_code: $ => token(/[^*\r\n]+/),
+
+    doc_example_line_code: $ => token(/[^@\r\n]+/),
+
+    doc_example_body_line: $ =>
+      seq($.doc_comment_margin, optional($.doc_example_line_code)),
+
+    doc_example_body: $ => repeat1($.doc_example_body_line),
+
+    doc_example: $ => choice(
+      seq('@example', field('body', $.doc_example_body)),
+      seq('@example', field('body', $.doc_example_inline_code)),
       '@example',
-      '@since',
-      '@history',
-      '@deprecated',
-    )),
+    ),
 
-    block_comment: $ => seq('/*', optional($._comment_body), '*/'),
-    doc_comment: $ => prec(1, seq('/**', optional($._comment_body), '*/')),
+    doc_since: $ => choice(
+      seq('@since', field('body', $.doc_since_body)),
+      '@since',
+    ),
+
+    doc_history: $ => choice(
+      seq('@history', field('body', $.doc_history_body)),
+      '@history',
+    ),
+
+    doc_param: $ => choice(
+      seq('@param', field('body', $.doc_body_multiline)),
+      '@param',
+    ),
+
+    doc_returns: $ => choice(
+      seq('@returns', field('body', $.doc_body_multiline)),
+      '@returns',
+    ),
+
+    doc_throws: $ => choice(
+      seq('@throws', field('body', $.doc_body_multiline)),
+      '@throws',
+    ),
+
+    doc_deprecated: $ => choice(
+      seq('@deprecated', field('body', $.doc_body_multiline)),
+      '@deprecated',
+    ),
+
+    doc_unknown_tag: $ => choice(
+      seq('@', field('name', $.doc_tag_name), field('body', $.doc_body_multiline)),
+      seq('@', field('name', $.doc_tag_name)),
+    ),
+
+    // Hidden rule so `doc_comment` children are a flat list: optional preamble, then directives.
+    _doc_any_directive: $ => choice(
+      $.doc_example,
+      $.doc_since,
+      $.doc_history,
+      $.doc_param,
+      $.doc_returns,
+      $.doc_throws,
+      $.doc_deprecated,
+      $.doc_unknown_tag,
+    ),
+
+    _doc_block_content: $ => choice(
+      repeat1($._doc_any_directive),
+      seq($.doc_preamble, repeat($._doc_any_directive)),
+    ),
+
+    block_comment: $ =>
+      seq('/*', optional($._doc_block_content), token(prec(10, '*/'))),
+
+    doc_comment: $ =>
+      prec(1, seq('/**', optional($._doc_block_content), token(prec(10, '*/')))),
   },
 });

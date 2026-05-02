@@ -828,7 +828,39 @@
       "required": false,
       "types": [
         {
-          "type": "documentation_tag",
+          "type": "doc_deprecated",
+          "named": true
+        },
+        {
+          "type": "doc_example",
+          "named": true
+        },
+        {
+          "type": "doc_history",
+          "named": true
+        },
+        {
+          "type": "doc_param",
+          "named": true
+        },
+        {
+          "type": "doc_preamble",
+          "named": true
+        },
+        {
+          "type": "doc_returns",
+          "named": true
+        },
+        {
+          "type": "doc_since",
+          "named": true
+        },
+        {
+          "type": "doc_throws",
+          "named": true
+        },
+        {
+          "type": "doc_unknown_tag",
           "named": true
         }
       ]
@@ -1142,6 +1174,25 @@
     }
   },
   {
+    "type": "doc_body_multiline",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "doc_comment_margin",
+          "named": true
+        },
+        {
+          "type": "doc_content_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "doc_comment",
     "named": true,
     "extra": true,
@@ -1151,10 +1202,293 @@
       "required": false,
       "types": [
         {
-          "type": "documentation_tag",
+          "type": "doc_deprecated",
+          "named": true
+        },
+        {
+          "type": "doc_example",
+          "named": true
+        },
+        {
+          "type": "doc_history",
+          "named": true
+        },
+        {
+          "type": "doc_param",
+          "named": true
+        },
+        {
+          "type": "doc_preamble",
+          "named": true
+        },
+        {
+          "type": "doc_returns",
+          "named": true
+        },
+        {
+          "type": "doc_since",
+          "named": true
+        },
+        {
+          "type": "doc_throws",
+          "named": true
+        },
+        {
+          "type": "doc_unknown_tag",
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "doc_comment_margin",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "doc_content_text",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "doc_deprecated",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_body_multiline",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_example",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_example_body",
+            "named": true
+          },
+          {
+            "type": "doc_example_inline_code",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_example_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "doc_example_body_line",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "doc_example_body_line",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "doc_comment_margin",
+          "named": true
+        },
+        {
+          "type": "doc_example_line_code",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "doc_history",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_history_body",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_history_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "history_description",
+          "named": true
+        },
+        {
+          "type": "semver_invalid",
+          "named": true
+        },
+        {
+          "type": "semver_valid",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "doc_param",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_body_multiline",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_preamble",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "doc_comment_margin",
+          "named": true
+        },
+        {
+          "type": "doc_content_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "doc_returns",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_body_multiline",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_since",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_since_body",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_since_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "semver_invalid",
+          "named": true
+        },
+        {
+          "type": "semver_valid",
+          "named": true
+        },
+        {
+          "type": "since_trailing",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "doc_throws",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_body_multiline",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_unknown_tag",
+    "named": true,
+    "fields": {
+      "body": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_body_multiline",
+            "named": true
+          }
+        ]
+      },
+      "name": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "doc_tag_name",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1385,6 +1719,25 @@
       "types": [
         {
           "type": "attributes",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
+    "type": "history_description",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "doc_comment_margin",
+          "named": true
+        },
+        {
+          "type": "doc_content_text",
           "named": true
         }
       ]
@@ -2383,6 +2736,25 @@
     }
   },
   {
+    "type": "since_trailing",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "doc_comment_margin",
+          "named": true
+        },
+        {
+          "type": "doc_content_text",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "special_identifier",
     "named": true,
     "fields": {},
@@ -3090,6 +3462,34 @@
     "named": false
   },
   {
+    "type": "@deprecated",
+    "named": false
+  },
+  {
+    "type": "@example",
+    "named": false
+  },
+  {
+    "type": "@history",
+    "named": false
+  },
+  {
+    "type": "@param",
+    "named": false
+  },
+  {
+    "type": "@returns",
+    "named": false
+  },
+  {
+    "type": "@since",
+    "named": false
+  },
+  {
+    "type": "@throws",
+    "named": false
+  },
+  {
     "type": "[",
     "named": false
   },
@@ -3146,7 +3546,15 @@
     "named": true
   },
   {
-    "type": "documentation_tag",
+    "type": "doc_example_inline_code",
+    "named": true
+  },
+  {
+    "type": "doc_example_line_code",
+    "named": true
+  },
+  {
+    "type": "doc_tag_name",
     "named": true
   },
   {
@@ -3289,6 +3697,14 @@
   {
     "type": "return",
     "named": false
+  },
+  {
+    "type": "semver_invalid",
+    "named": true
+  },
+  {
+    "type": "semver_valid",
+    "named": true
   },
   {
     "type": "throw",

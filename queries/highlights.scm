@@ -15,8 +15,38 @@
 
 (doc_comment) @comment @comment.documentation @spell
 
-; Graindoc / block-comment @tags (`@param`, `@return`, …)
-(documentation_tag) @keyword.directive
+(doc_comment_margin) @comment @comment.documentation @spell
+
+; Structured block / doc comments: preamble + `doc_directive` (`@param`, `@since`, …)
+(doc_preamble) @spell
+
+(doc_example
+  "@example" @keyword.directive)
+
+(doc_since
+  "@since" @keyword.directive)
+
+(doc_history
+  "@history" @keyword.directive)
+
+(doc_param
+  "@param" @keyword.directive)
+
+(doc_returns
+  "@returns" @keyword.directive)
+
+(doc_throws
+  "@throws" @keyword.directive)
+
+(doc_deprecated
+  "@deprecated" @keyword.directive)
+
+(doc_unknown_tag
+  (doc_tag_name) @keyword.directive)
+
+(semver_valid) @number
+
+((semver_invalid) @comment.error @error @diagnostic.error @nospell)
 
 ; Attributes
 (attribute
