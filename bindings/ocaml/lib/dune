@@ -1,0 +1,17 @@
+(copy_files#
+ (files ../../../src/parser.c))
+
+(library
+ (name tree_sitter_grain)
+ (public_name tree-sitter-grain)
+ (libraries tree-sitter)
+ (foreign_stubs
+  (language c)
+  (names parser tree_sitter_grain_stubs)
+  (flags
+   (:standard)
+   (:include ../config/cflags.sexp))
+  (include_dirs ../../../src))
+ (c_library_flags
+  (:standard)
+  (:include ../config/clibs.sexp)))

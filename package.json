@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Grain grammar for tree-sitter",
   "license": "MIT",
+  "type": "module",
   "main": "bindings/node",
   "dependencies": {
     "node-addon-api": "^8.7.0",

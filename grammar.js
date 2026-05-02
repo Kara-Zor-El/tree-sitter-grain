@@ -51,7 +51,7 @@ const PREC = {
   ANNOTATE: 18,
 };
 
-module.exports = grammar({
+export default grammar({
   name: 'grain',
 
   extras: $ => [
