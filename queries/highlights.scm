@@ -21,28 +21,31 @@
 (doc_preamble) @spell
 
 (doc_example
-  "@example" @keyword.directive)
+  "@example" @tag)
 
 (doc_since
-  "@since" @keyword.directive)
+  "@since" @tag)
 
 (doc_history
-  "@history" @keyword.directive)
+  "@history" @tag)
 
 (doc_param
-  "@param" @keyword.directive)
+  "@param" @tag)
 
 (doc_returns
-  "@returns" @keyword.directive)
+  "@returns" @tag)
 
 (doc_throws
-  "@throws" @keyword.directive)
+  "@throws" @tag)
 
 (doc_deprecated
-  "@deprecated" @keyword.directive)
+  "@deprecated" @tag)
 
 (doc_unknown_tag
-  (doc_tag_name) @keyword.directive)
+  "@" @punctuation.special)
+
+(doc_unknown_tag
+  (doc_tag_name) @label)
 
 (semver_valid) @number
 
@@ -101,30 +104,11 @@
 (char
   (escape_sequence) @string.escape)
 
-; Identifiers
 (identifier) @variable
-
-(upper_identifier) @type
 
 (special_identifier) @variable
 
-; Paths — leading module/type segments (Foo.Bar.baz)
-(qualified_identifier
-  (upper_identifier) @module)
-
-(qualified_identifier
-  .
-  (upper_identifier)
-  .
-  (upper_identifier) @module)
-
-(qualified_type_identifier
-  (upper_identifier) @module)
-
-(module_header
-  name: (upper_identifier) @module)
-
-; Operators given dedicated nodes
+; Operators
 (prefix_operator) @operator
 (assignment_operator) @operator
 (custom_infix_operator) @operator
@@ -132,11 +116,18 @@
 (infix_70_operator) @operator
 (infix_100_operator) @operator
 
-(binary_expression
-  operator: _ @operator)
-
 (unary_expression
-  operator: _ @operator)
+  operator: (prefix_operator) @operator)
+
+; Import/export keywords
+(include_declaration
+  "from" @keyword.import)
+
+(foreign_declaration
+  "from" @keyword)
+
+(provide_declaration
+  "provide" @keyword.export)
 
 ; Keywords (anonymous terminals — excludes query-reserved spellings:
 ; break, continue, void, await, import, …)
@@ -145,7 +136,6 @@
   "let"
   "foreign"
   "wasm"
-  "from"
   "primitive"
   "exception"
   "abstract"
@@ -164,7 +154,6 @@
 [
   "use"
   "include"
-  "provide"
 ] @keyword.import
 
 [
@@ -206,6 +195,9 @@
 (any_pattern
   "_" @character.special)
 
+(or_pattern
+  "|" @punctuation.delimiter)
+
 (record_get_expression
   field: (_) @variable.member)
 
@@ -218,6 +210,35 @@
 (arrow_type
   (identifier) @variable.parameter)
 
+; Caps names
+(upper_identifier) @type
+
+((qualified_identifier
+  (upper_identifier) @namespace)
+ (#set! priority 105))
+
+((use_expression
+  (upper_identifier) @namespace)
+ (#set! priority 105))
+
+((include_declaration
+  module: (qualified_type_identifier
+    (upper_identifier) @namespace))
+ (#set! priority 105))
+
+((include_declaration
+  alias: (qualified_type_identifier
+    (upper_identifier) @namespace))
+ (#set! priority 105))
+
+((module_header
+  name: (upper_identifier) @type.definition)
+ (#set! priority 105))
+
+((module_declaration
+  name: (upper_identifier) @type.definition)
+ (#set! priority 105))
+
 ; Punctuation / delimiters
 [
   "("
@@ -228,7 +249,6 @@
   "}"
 ] @punctuation.bracket
 
-; Note: "->" is not matchable here (reserved query syntax).
 ; "=>" is highlighted via (lambda_expression "=>") as @keyword.function; match arms
 ; still look fine with that rule.
 [
@@ -236,7 +256,6 @@
   ";"
   "."
   ":"
-  "|"
   "..."
   ":="
   "="
@@ -254,3 +273,22 @@
     "<"
     ">"
   ] @punctuation.bracket)
+
+; Binary operators
+((binary_expression
+  operator: [
+    "||"
+    "??"
+    "&&"
+    "|"
+    "=="
+    "!="
+    "<"
+    ">"
+    "+"
+    "-"
+    "*"
+    "/"
+    "%"
+  ] @operator)
+ (#set! priority 110))
