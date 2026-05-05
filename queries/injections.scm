@@ -1,38 +1,44 @@
-; Markdown on prose fragments only (margins excluded via grammar).
+; Markdown / Grain injections for doc comments.
 
 ((doc_preamble
   (doc_content_text) @injection.content)
   (#set! injection.language "markdown"))
 
 ((doc_param
-  (doc_body_multiline
-    (doc_content_text) @injection.content))
+  (doc_directive_body) @injection.content)
   (#set! injection.language "markdown"))
 
 ((doc_returns
-  (doc_body_multiline
-    (doc_content_text) @injection.content))
+  (doc_directive_body) @injection.content)
   (#set! injection.language "markdown"))
 
 ((doc_throws
-  (doc_body_multiline
-    (doc_content_text) @injection.content))
+  (doc_directive_body) @injection.content)
   (#set! injection.language "markdown"))
 
 ((doc_deprecated
-  (doc_body_multiline
-    (doc_content_text) @injection.content))
+  (doc_directive_body) @injection.content)
   (#set! injection.language "markdown"))
 
 ((doc_unknown_tag
-  (doc_body_multiline
-    (doc_content_text) @injection.content))
+  (doc_directive_body) @injection.content)
+  (#set! injection.language "markdown"))
+
+((doc_since
+  (doc_since_body) @injection.content)
+  (#set! injection.language "markdown"))
+
+((doc_history
+  (doc_history_body) @injection.content)
   (#set! injection.language "markdown"))
 
 ((doc_example
-  (doc_example_inline_code) @injection.content)
+  (doc_directive_body
+    (doc_same_line_body) @injection.content))
   (#set! injection.language "grain"))
 
-((doc_example_body_line
-  (doc_example_line_code) @injection.content)
+((doc_example
+  (doc_example_body
+    (doc_example_body_line
+      (doc_example_line_code) @injection.content)))
   (#set! injection.language "grain"))

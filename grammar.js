@@ -1033,37 +1033,49 @@ export default grammar({
 
     doc_preamble: $ => repeat1($._doc_comment_line),
 
-    doc_body_multiline: $ => repeat1($._doc_comment_line),
-
     doc_tag_name: $ => token(/[a-zA-Z_][a-zA-Z0-9_-]*/),
-
     semver_valid: $ => token(
       /v?[0-9]+\.[0-9]+\.[0-9]+(?:-(?:[0-9.\-]|[\x41-\x7a])*(?:\+(?:[0-9\-]|[\x41-\x7a])*)?)?/,
     ),
 
-    semver_invalid: $ => token(/[^@\s*:]+/),
+    semver_invalid: $ => token(/[^\s\r\n:][^\r\n:]*/),
 
-    since_trailing: $ => repeat1($._doc_comment_line),
+    doc_blank_continuation_line: $ => token(/\r?\n[ \t]+\*[ \t]*/),
 
-    doc_since_body: $ => choice(
-      seq($.semver_valid, $.since_trailing),
-      $.semver_valid,
-      seq($.semver_invalid, $.since_trailing),
-      $.semver_invalid,
+    doc_multiline_suffix: $ => repeat1(choice(
+      $.doc_blank_continuation_line,
+      token(
+        /\r?\n[ \t]+\*[ \t]*(?:[^@\s\r\n][^\r\n]*|@[^A-Za-z_\r\n][^\r\n]*)/,
+      ),
+    )),
+
+    doc_same_line_body: $ => token(/([^*\/\r\n]+|\*[^/]|\/[^*])+/),
+
+    doc_directive_body: $ => choice(
+      seq(
+        field('same_line', $.doc_same_line_body),
+        optional(field('continued', $.doc_multiline_suffix)),
+      ),
+      field('continued', $.doc_multiline_suffix),
     ),
 
-    history_description: $ => seq(':', repeat1($._doc_comment_line)),
-
-    doc_history_body: $ => choice(
-      seq($.semver_valid, $.history_description),
-      $.semver_valid,
-      seq($.semver_invalid, $.history_description),
-      $.semver_invalid,
+    doc_since_body: $ => seq(
+      optional(token(/[ \t]+/)),
+      field('version', choice($.semver_valid, $.semver_invalid)),
+      optional(field('continued', $.doc_multiline_suffix)),
     ),
 
-    doc_example_inline_code: $ => token(/[^*\r\n]+/),
+    doc_history_body: $ => seq(
+      optional(token(/[ \t]+/)),
+      field('version', choice($.semver_valid, $.semver_invalid)),
+      optional(seq(
+        ':',
+        optional(field('description', $.doc_same_line_body)),
+      )),
+      optional(field('continued', $.doc_multiline_suffix)),
+    ),
 
-    doc_example_line_code: $ => token(/[^@\r\n]+/),
+    doc_example_line_code: $ => token(/[^@\r\n][^\r\n]*/),
 
     doc_example_body_line: $ =>
       seq($.doc_comment_margin, optional($.doc_example_line_code)),
@@ -1072,7 +1084,7 @@ export default grammar({
 
     doc_example: $ => choice(
       seq('@example', field('body', $.doc_example_body)),
-      seq('@example', field('body', $.doc_example_inline_code)),
+      seq('@example', field('body', $.doc_directive_body)),
       '@example',
     ),
 
@@ -1087,27 +1099,31 @@ export default grammar({
     ),
 
     doc_param: $ => choice(
-      seq('@param', field('body', $.doc_body_multiline)),
+      seq('@param', field('body', $.doc_directive_body)),
       '@param',
     ),
 
     doc_returns: $ => choice(
-      seq('@returns', field('body', $.doc_body_multiline)),
+      seq('@returns', field('body', $.doc_directive_body)),
       '@returns',
     ),
 
     doc_throws: $ => choice(
-      seq('@throws', field('body', $.doc_body_multiline)),
+      seq('@throws', field('body', $.doc_directive_body)),
       '@throws',
     ),
 
     doc_deprecated: $ => choice(
-      seq('@deprecated', field('body', $.doc_body_multiline)),
+      seq('@deprecated', field('body', $.doc_directive_body)),
       '@deprecated',
     ),
 
     doc_unknown_tag: $ => choice(
-      seq('@', field('name', $.doc_tag_name), field('body', $.doc_body_multiline)),
+      seq(
+        '@',
+        field('name', $.doc_tag_name),
+        field('body', $.doc_directive_body),
+      ),
       seq('@', field('name', $.doc_tag_name)),
     ),
 

@@ -1174,25 +1174,6 @@
     }
   },
   {
-    "type": "doc_body_multiline",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "doc_comment_margin",
-          "named": true
-        },
-        {
-          "type": "doc_content_text",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "doc_comment",
     "named": true,
     "extra": true,
@@ -1259,7 +1240,33 @@
         "required": false,
         "types": [
           {
-            "type": "doc_body_multiline",
+            "type": "doc_directive_body",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_directive_body",
+    "named": true,
+    "fields": {
+      "continued": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_multiline_suffix",
+            "named": true
+          }
+        ]
+      },
+      "same_line": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_same_line_body",
             "named": true
           }
         ]
@@ -1275,11 +1282,11 @@
         "required": false,
         "types": [
           {
-            "type": "doc_example_body",
+            "type": "doc_directive_body",
             "named": true
           },
           {
-            "type": "doc_example_inline_code",
+            "type": "doc_example_body",
             "named": true
           }
         ]
@@ -1339,21 +1346,57 @@
   {
     "type": "doc_history_body",
     "named": true,
+    "fields": {
+      "continued": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_multiline_suffix",
+            "named": true
+          }
+        ]
+      },
+      "description": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_same_line_body",
+            "named": true
+          }
+        ]
+      },
+      "version": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "semver_invalid",
+            "named": true
+          },
+          {
+            "type": "semver_valid",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "doc_multiline_suffix",
+    "named": true,
     "fields": {},
     "children": {
       "multiple": true,
       "required": true,
       "types": [
         {
-          "type": "history_description",
+          "type": "doc_blank_continuation_line",
           "named": true
         },
         {
-          "type": "semver_invalid",
-          "named": true
-        },
-        {
-          "type": "semver_valid",
+          "type": "doc_non_directive_continuation_line",
           "named": true
         }
       ]
@@ -1368,7 +1411,7 @@
         "required": false,
         "types": [
           {
-            "type": "doc_body_multiline",
+            "type": "doc_directive_body",
             "named": true
           }
         ]
@@ -1403,7 +1446,7 @@
         "required": false,
         "types": [
           {
-            "type": "doc_body_multiline",
+            "type": "doc_directive_body",
             "named": true
           }
         ]
@@ -1429,24 +1472,31 @@
   {
     "type": "doc_since_body",
     "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "semver_invalid",
-          "named": true
-        },
-        {
-          "type": "semver_valid",
-          "named": true
-        },
-        {
-          "type": "since_trailing",
-          "named": true
-        }
-      ]
+    "fields": {
+      "continued": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "doc_multiline_suffix",
+            "named": true
+          }
+        ]
+      },
+      "version": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "semver_invalid",
+            "named": true
+          },
+          {
+            "type": "semver_valid",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
@@ -1458,7 +1508,7 @@
         "required": false,
         "types": [
           {
-            "type": "doc_body_multiline",
+            "type": "doc_directive_body",
             "named": true
           }
         ]
@@ -1474,7 +1524,7 @@
         "required": false,
         "types": [
           {
-            "type": "doc_body_multiline",
+            "type": "doc_directive_body",
             "named": true
           }
         ]
@@ -1719,25 +1769,6 @@
       "types": [
         {
           "type": "attributes",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
-    "type": "history_description",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "doc_comment_margin",
-          "named": true
-        },
-        {
-          "type": "doc_content_text",
           "named": true
         }
       ]
@@ -2736,25 +2767,6 @@
     }
   },
   {
-    "type": "since_trailing",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "doc_comment_margin",
-          "named": true
-        },
-        {
-          "type": "doc_content_text",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "special_identifier",
     "named": true,
     "fields": {},
@@ -3546,11 +3558,19 @@
     "named": true
   },
   {
-    "type": "doc_example_inline_code",
+    "type": "doc_blank_continuation_line",
     "named": true
   },
   {
     "type": "doc_example_line_code",
+    "named": true
+  },
+  {
+    "type": "doc_non_directive_continuation_line",
+    "named": true
+  },
+  {
+    "type": "doc_same_line_body",
     "named": true
   },
   {
