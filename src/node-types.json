@@ -427,6 +427,10 @@
           "named": true
         },
         {
+          "type": "application_expression",
+          "named": true
+        },
+        {
           "type": "array_expression",
           "named": true
         },
@@ -1389,14 +1393,10 @@
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "doc_blank_continuation_line",
-          "named": true
-        },
-        {
-          "type": "doc_non_directive_continuation_line",
           "named": true
         }
       ]
@@ -3563,10 +3563,6 @@
   },
   {
     "type": "doc_example_line_code",
-    "named": true
-  },
-  {
-    "type": "doc_non_directive_continuation_line",
     "named": true
   },
   {

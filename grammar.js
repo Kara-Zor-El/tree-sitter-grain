@@ -87,7 +87,6 @@ export default grammar({
     [$._arrow_type_argument, $.tuple_type],
     [$._arrow_type_argument, $.parenthesized_type],
     [$.lambda_expression, $._id_str],
-    [$._left_accessor_expression, $._application_callee],
   ],
 
   rules: {
@@ -579,20 +578,8 @@ export default grammar({
     non_punned_record_field: $ => seq($.qualified_identifier, ':', $._expression),
     spread_record_field: $ => seq('...', $._expression),
 
-    _application_callee: $ => choice(
-      $.constructor_expression,
-      $._simple_expression,
-      $.array_get_expression,
-      $.record_get_expression,
-      $.parenthesized_expression,
-      $.block_expression,
-      $.record_expression,
-      $.list_expression,
-      $.array_expression,
-    ),
-
-    application_expression: $ => prec(PREC.CALL, seq(
-      $._application_callee,
+    application_expression: $ => prec.left(PREC.CALL, seq(
+      $._left_accessor_expression,
       '(',
       optional(seq(commaSep1($.application_argument), optional(','))),
       ')',
@@ -696,7 +683,7 @@ export default grammar({
 
     array_get_expression: $ => prec(PREC.ACCESS, seq(
       $._left_accessor_expression,
-      '[',
+      token.immediate('['),
       $._expression,
       ']',
     )),
@@ -712,7 +699,7 @@ export default grammar({
       seq($.identifier_expression, '=', $._expression),
       seq($.identifier_expression, $.assignment_operator, $._expression),
       seq($._left_accessor_expression, '.', $._id_str, choice('=', $.assignment_operator), $._expression),
-      seq($._left_accessor_expression, '[', $._expression, ']', choice('=', $.assignment_operator), $._expression),
+      seq($._left_accessor_expression, token.immediate('['), $._expression, ']', choice('=', $.assignment_operator), $._expression),
     )),
 
     // --- Types ---
