@@ -10,7 +10,8 @@
         "gr"
       ],
       "highlights": "queries/highlights.scm",
-      "injections": "queries/injections.scm"
+      "injections": "queries/injections.scm",
+      "locals": "queries/locals.scm"
     }
   ],
   "metadata": {
