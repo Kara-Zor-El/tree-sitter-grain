@@ -89,6 +89,7 @@ export default grammar({
   ],
 
   rules: {
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L714
     program: ($) =>
       choice(
         prec(
@@ -99,11 +100,14 @@ export default grammar({
             optional($._toplevel_statements),
           ),
         ),
+        // TODO: This should not be a choice
         prec(1, repeat1($._toplevel_statement)),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L711
     module_header: ($) => seq("module", field("name", $.upper_identifier)),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L708
     _toplevel_statements: ($) =>
       seq(
         $._toplevel_statement,
@@ -111,10 +115,12 @@ export default grammar({
         optional(";"),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L694
     _toplevel_statement: ($) =>
+      // TODO: Handle attributes here
       choice(
         $.let_declaration,
-        $.data_declaration_statement,
+        $.data_declaration_statements,
         $.foreign_declaration,
         $.include_declaration,
         $.module_declaration,
@@ -126,6 +132,7 @@ export default grammar({
 
     // --- Provide ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L377
     provide_declaration: ($) =>
       choice(
         seq(
@@ -143,9 +150,13 @@ export default grammar({
         seq(optional($.attributes), "provide", $._module_body),
       ),
 
-    provide_shape: ($) =>
-      seq("{", optional(seq(commaSep1($.provide_item), optional(","))), "}"),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L374
+    provide_shape: ($) => seq("{", optional($._provide_items), "}"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L371
+    _provide_items: ($) => seq(commaSep1($.provide_item), optional(",")),
+
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L365
     provide_item: ($) =>
       choice(
         seq("type", $._aliasable_uid),
@@ -154,13 +165,16 @@ export default grammar({
         $._aliasable_lid,
       ),
 
+    // TODO: It would be nice if we could make this match the parser a bit more
     _aliasable_uid: ($) =>
       seq($.upper_identifier, optional(seq("as", $.upper_identifier))),
 
+    // TODO: It would be nice if we could make this match the parser a bit more
     _aliasable_lid: ($) => seq($._id_str, optional(seq("as", $._id_str))),
 
     // --- Let ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L695-L698
     let_declaration: ($) =>
       seq(
         optional($.attributes),
@@ -170,6 +184,7 @@ export default grammar({
         $.value_bindings,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L531
     let_expression: ($) =>
       seq(
         optional($.attributes),
@@ -179,22 +194,33 @@ export default grammar({
         $.value_bindings,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L326
     value_bindings: ($) => sep1("and", $.value_binding),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L323
     value_binding: ($) =>
       seq(field("pattern", $._pattern), "=", field("value", $._expression)),
 
     // --- Data declarations ---
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L362
+    data_declaration_statements: ($) =>
+      seq(optional($.attributes), sep1("and", $._data_declaration_statement)),
 
-    data_declaration_statement: ($) =>
-      seq(optional($.attributes), sep1("and", $._data_declaration)),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L357
+    _data_declaration_statement: ($) =>
+      choice(
+        seq("abstract", $._data_declaration),
+        seq("provide", $._data_declaration),
+        $._data_declaration,
+      ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L415
     _data_declaration: ($) =>
       choice($.type_alias, $.enum_declaration, $.record_type_declaration),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L416
     type_alias: ($) =>
       seq(
-        optional(choice("provide", "abstract")),
         "type",
         optional("rec"),
         field("name", $.upper_identifier),
@@ -203,9 +229,9 @@ export default grammar({
         $._type,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L417
     enum_declaration: ($) =>
       seq(
-        optional(choice("provide", "abstract")),
         "enum",
         optional("rec"),
         field("name", $.upper_identifier),
@@ -213,34 +239,41 @@ export default grammar({
         $.enum_body,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L418
     record_type_declaration: ($) =>
       seq(
-        optional(choice("provide", "abstract")),
         "record",
         optional("rec"),
         field("name", $.upper_identifier),
         optional($.type_parameters),
-        $.record_declaration_body,
+        $.data_constructor_record,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L409
     type_parameters: ($) =>
       seq("<", commaSep1($.type_variable), optional(","), ">"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L406
     type_variable: ($) => $.identifier,
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L393
     enum_body: ($) => seq("{", commaSep1($.enum_variant), optional(","), "}"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L388
     enum_variant: ($) =>
       seq(
         field("name", $.upper_identifier),
         optional(choice($.data_constructor_tuple, $.data_constructor_record)),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L400
     data_constructor_tuple: ($) =>
       seq("(", commaSep1($._type), optional(","), ")"),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L403
     data_constructor_record: ($) =>
       seq("{", commaSep1($.record_field_declaration), optional(","), "}"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L396
     record_field_declaration: ($) =>
       seq(
         optional("mut"),
@@ -249,13 +282,12 @@ export default grammar({
         field("type", $._type),
       ),
 
-    record_declaration_body: ($) =>
-      seq("{", commaSep1($.record_field_declaration), optional(","), "}"),
-
     // --- Foreign ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L700
     foreign_declaration: ($) => seq(optional($.attributes), $._foreign_body),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L676
     _foreign_body: ($) =>
       seq(
         "foreign",
@@ -263,6 +295,7 @@ export default grammar({
         field("name", $._id_str),
         ":",
         field("type", $._type),
+        // TODO: It would be nice if we had an `as_prefix` helper like the parser
         optional(seq("as", field("alias", $._id_str))),
         "from",
         field("module", $.string),
@@ -270,6 +303,8 @@ export default grammar({
 
     // --- Include ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L701
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L354
     include_declaration: ($) =>
       seq(
         optional($.attributes),
@@ -282,17 +317,21 @@ export default grammar({
 
     // --- Use ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L348
+    // TODO: Get rid of use_tail make this match the parser better
     use_expression: ($) => seq("use", $.upper_identifier, ".", $._use_tail),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L348
     _use_tail: ($) =>
       choice(seq($.upper_identifier, ".", $._use_tail), $.use_shape),
 
-    use_shape: ($) =>
-      choice(
-        "*",
-        seq("{", optional(seq(commaSep1($.use_item), optional(","))), "}"),
-      ),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L344
+    use_shape: ($) => choice("*", seq("{", optional($._use_items), "}")),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L341
+    _use_items: ($) => seq(commaSep1($.use_item), optional(",")),
+
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L335
     use_item: ($) =>
       choice(
         seq("type", $._aliasable_uid),
@@ -303,8 +342,10 @@ export default grammar({
 
     // --- Module ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L702
     module_declaration: ($) => seq(optional($.attributes), $._module_body),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L691
     _module_body: ($) =>
       seq(
         "module",
@@ -316,9 +357,11 @@ export default grammar({
 
     // --- Primitive ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L703
     primitive_declaration: ($) =>
       seq(optional($.attributes), $._primitive_body),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L682
     _primitive_body: ($) =>
       seq(
         "primitive",
@@ -327,13 +370,16 @@ export default grammar({
         field("value", $.string),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L463
     _primitive_name: ($) => choice("assert", "throw", "fail"),
 
     // --- Exception ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L686
     exception_declaration: ($) =>
       seq(optional($.attributes), $._exception_body),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L686
     _exception_body: ($) =>
       prec.left(
         choice(
@@ -355,18 +401,23 @@ export default grammar({
 
     // --- Expressions ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L704
     expression_statement: ($) => $._expression,
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L234
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L229
     _expression: ($) =>
       choice(
         $.binary_expression,
         $.annotated_expression,
+        // TODO: I'm not 100% sure that this is right if you check the parser
         $.lambda_expression,
         $.assign_expression,
         $._non_assign_expression,
         $._statement_expression,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L577
     _statement_expression: ($) =>
       choice(
         $.throw_expression,
@@ -378,18 +429,28 @@ export default grammar({
         $.use_expression,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L578
     throw_expression: ($) => prec.right(seq("throw", $._expression)),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L579
     assert_expression: ($) => prec.right(seq("assert", $._expression)),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L580
     fail_expression: ($) => prec.right(seq("fail", $._expression)),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L582
     return_expression: ($) =>
       prec.right(seq("return", optional($._expression))),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L583
     continue_expression: ($) => "continue",
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L584
     break_expression: ($) => "break",
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L238
     annotated_expression: ($) =>
+      // TODO: Checking the parser i'm not 100% sure that this is right
       prec(PREC.ANNOTATE, seq($._expression, ":", $._type)),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L242
     binary_expression: ($) => {
+      // TODO: Link to this table
       const table = [
         [PREC.INFIX_30, choice("||", "??")],
         [PREC.INFIX_40, "&&"],
@@ -424,6 +485,7 @@ export default grammar({
       );
     },
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L597
     _non_assign_expression: ($) =>
       choice(
         $._left_accessor_expression,
@@ -434,6 +496,7 @@ export default grammar({
         $.match_expression,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L605
     _left_accessor_expression: ($) =>
       choice(
         $.application_expression,
@@ -442,12 +505,14 @@ export default grammar({
         $.array_get_expression,
         $.record_get_expression,
         $.parenthesized_expression,
+        // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L502
         $.block_expression,
         $.record_expression,
         $.list_expression,
         $.array_expression,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L436
     constructor_expression: ($) =>
       prec.dynamic(
         1,
@@ -472,11 +537,14 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L497
     _simple_expression: ($) =>
       choice($._constant, $.tuple_expression, $.identifier_expression),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L493
     identifier_expression: ($) => $.qualified_identifier,
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L197
     _constant: ($) =>
       choice(
         $.number_literal,
@@ -504,8 +572,10 @@ export default grammar({
         $.char,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L423
     parenthesized_expression: ($) => seq("(", $._expression, ")"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L623
     tuple_expression: ($) =>
       seq(
         "(",
@@ -516,8 +586,10 @@ export default grammar({
         ")",
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L503
     block_expression: ($) => seq("{", $._block_body, "}"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L663
     _block_body: ($) =>
       seq(
         $._block_body_expression,
@@ -525,11 +597,14 @@ export default grammar({
         optional(";"),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L616
     _block_body_expression: ($) => choice($.let_expression, $._expression),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L504
     record_expression: ($) =>
       seq("{", commaSep1($._record_field), optional(","), "}"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L657
     _record_field: ($) =>
       choice(
         $.punned_record_field,
@@ -537,11 +612,15 @@ export default grammar({
         $.spread_record_field,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L643
     punned_record_field: ($) => $.qualified_identifier,
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L646
     non_punned_record_field: ($) =>
       seq($.qualified_identifier, ":", $._expression),
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L649
     spread_record_field: ($) => seq("...", $._expression),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L430
     application_expression: ($) =>
       prec.left(
         PREC.CALL,
@@ -553,12 +632,14 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L426
     application_argument: ($) =>
       choice(
         $._expression,
         seq(field("label", $._id_str), "=", field("value", $._expression)),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L515
     lambda_expression: ($) =>
       prec.right(
         choice(
@@ -577,8 +658,10 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L509
     lambda_argument: ($) => seq($._pattern, optional(seq("=", $._expression))),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L420
     unary_expression: ($) =>
       prec(
         PREC.PREFIX,
@@ -588,6 +671,7 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L540
     if_expression: ($) =>
       prec.right(
         seq(
@@ -600,6 +684,7 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L543
     while_expression: ($) =>
       seq(
         "while",
@@ -609,6 +694,7 @@ export default grammar({
         field("body", $._expression),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L550
     for_expression: ($) =>
       seq(
         "for",
@@ -622,6 +708,7 @@ export default grammar({
         field("body", $._expression),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L562
     match_expression: ($) =>
       seq(
         "match",
@@ -634,6 +721,7 @@ export default grammar({
         "}",
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L556
     match_branch: ($) =>
       seq(
         field("pattern", $._pattern),
@@ -642,24 +730,30 @@ export default grammar({
         field("body", $._expression),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L553
     when_guard: ($) => seq("when", $._expression),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L569
     list_expression: ($) =>
       choice(
         seq("[", "]"),
         seq("[", commaSep1($._list_item), optional(","), "]"),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L565
     _list_item: ($) => choice($.spread_expression, $._expression),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L566
     spread_expression: ($) => seq("...", $._expression),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L573
     array_expression: ($) =>
       choice(
         seq("[>", "]"),
         seq("[>", commaSep1($._expression), optional(","), "]"),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L627
     array_get_expression: ($) =>
       prec(
         PREC.ACCESS,
@@ -671,12 +765,14 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L633
     record_get_expression: ($) =>
       prec(
         PREC.ACCESS,
         seq($._left_accessor_expression, ".", field("field", $._id_str)),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L590
     assign_expression: ($) =>
       prec.right(
         PREC.ASSIGN,
@@ -704,6 +800,7 @@ export default grammar({
 
     // --- Types ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L297
     _type: ($) =>
       choice(
         $.arrow_type,
@@ -713,6 +810,7 @@ export default grammar({
         $.constructor_type,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L298-L300
     arrow_type: ($) =>
       prec.right(
         1,
@@ -731,6 +829,7 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L306
     _arrow_type_argument: ($) =>
       choice(
         seq($.identifier, ":", $._type),
@@ -738,13 +837,17 @@ export default grammar({
         $._type,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L320
     tuple_type: ($) =>
       seq("(", $._type, ",", commaSep1($._type), optional(","), ")"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L302
     parenthesized_type: ($) => seq("(", $._type, ")"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L303
     type_variable_ref: ($) => $.identifier,
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L292
     constructor_type: ($) =>
       prec.left(
         1,
@@ -767,6 +870,7 @@ export default grammar({
 
     // --- Patterns ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L249
     _pattern: ($) =>
       choice(
         $.any_pattern,
@@ -783,26 +887,34 @@ export default grammar({
         $.typed_pattern,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L251
     any_pattern: ($) => "_",
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L252
     constant_pattern: ($) => $._constant,
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L255-L257
     variable_pattern: ($) => choice($._id_str, $._primitive_name),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L258
     tuple_pattern: ($) =>
       seq("(", $._pattern, ",", commaSep1($._pattern), optional(","), ")"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L259-L260
     array_pattern: ($) =>
       choice(
         seq("[>", commaSep1($._pattern), optional(","), "]"),
         seq("[>", "]"),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L261
     parenthesized_pattern: ($) => seq("(", $._pattern, ")"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L261-L262
     record_pattern: ($) =>
       seq("{", commaSep1($._record_pattern_field), optional(","), "}"),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L287
     _record_pattern_field: ($) =>
       choice(
         "_",
@@ -810,6 +922,7 @@ export default grammar({
         $.qualified_identifier,
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L263-L265
     constructor_pattern: ($) =>
       prec(
         1,
@@ -831,29 +944,38 @@ export default grammar({
         ),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L266-L267
     list_pattern: ($) =>
       choice(
         seq("[", "]"),
         seq("[", commaSep1($._list_pattern_item), optional(","), "]"),
       ),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L271
     _list_pattern_item: ($) => choice(seq("...", $._pattern), $._pattern),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L268
     or_pattern: ($) =>
       prec.left(PREC.PIPE_PAT, seq($._pattern, "|", $._pattern)),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L269
     alias_pattern: ($) => seq($._pattern, "as", $._id_str),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L250
     typed_pattern: ($) => prec.right(seq($._pattern, ":", $._type)),
 
     // --- Attributes ---
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L528
     attributes: ($) => repeat1($.attribute),
 
+    // https://github.com/grain-lang/grain/blob/0dcc049f636d11bc857b158465c53c3831dc543e/compiler/src/parsing/parser.mly#L525
     attribute: ($) =>
       seq("@", $._id_str, optional(seq("(", commaSep($.string), ")"))),
 
     // --- Operators ---
+
+    // TODO: Link to where these come from
 
     prefix_operator: ($) => "!",
 
@@ -943,6 +1065,8 @@ export default grammar({
 
     // --- Literals ---
 
+    // TODO: Link to where these come from
+
     number_literal: ($) => token(seq(optional("-"), INT_PATTERN)),
     float_literal: ($) => token(seq(optional("-"), FLOAT_PATTERN)),
     int8_literal: ($) => token(seq(optional("-"), INT_PATTERN, "s")),
@@ -1001,6 +1125,8 @@ export default grammar({
     upper_identifier: ($) => /[A-Z]\w*/,
 
     // --- Comments ---
+
+    // TODO: Link to where these come from
 
     line_comment: ($) => token(seq("//", /.*/)),
 
