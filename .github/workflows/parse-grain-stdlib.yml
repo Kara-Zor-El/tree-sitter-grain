@@ -1,0 +1,49 @@
+name: Parse Grain stdlib
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  parse-grain-stdlib:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tree-sitter-grain
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "latest"
+          cache: ""
+
+      - name: Install npm dependencies
+        run: npm install
+
+      - name: Install C toolchain
+        run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Clone Grain compiler repository
+        uses: actions/checkout@v6
+        with:
+          repository: grain-lang/grain
+          path: grain
+
+      - name: Parse all Grain sources in grain/stdlib
+        run: |
+          set -euo pipefail
+          find grain/stdlib -type f -name '*.gr' | sort > stdlib-grain-files.txt
+          count=$(wc -l < stdlib-grain-files.txt | tr -d ' ')
+          if [ "$count" -eq 0 ]; then
+            echo 'No .gr files found under grain/stdlib' >&2
+            exit 1
+          fi
+          echo "Found $count Grain source files in grain/stdlib"
+          npx tree-sitter init-config
+          npx tree-sitter parse --paths stdlib-grain-files.txt -q
+          echo "All $count stdlib .gr files parsed successfully."
