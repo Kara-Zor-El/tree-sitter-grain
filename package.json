@@ -17,6 +17,7 @@
     "prestart": "tree-sitter build --wasm",
     "start": "tree-sitter playground",
     "test": "tree-sitter test",
+    "test:validate": "node scripts/validate-stdlib.mjs",
     "generate": "tree-sitter generate",
     "build": "npm run generate && node-gyp rebuild",
     "build-wasm": "tree-sitter build --wasm"

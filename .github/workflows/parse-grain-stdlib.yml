@@ -7,6 +7,16 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      preview:
+        description: "Parse against Grain main (preview) instead of the latest release tag"
+        type: boolean
+        default: false
+      grain_ref:
+        description: "Grain git ref (tag, branch, or SHA). When set, overrides preview/release."
+        type: string
+        default: ""
 
 jobs:
   parse-grain-stdlib:
@@ -19,31 +29,29 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "latest"
+          node-version: 22
           cache: ""
-
-      - name: Install npm dependencies
-        run: npm install
 
       - name: Install C toolchain
         run: sudo apt-get update && sudo apt-get install -y build-essential
+
+      - name: Resolve Grain ref
+        id: grain
+        env:
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          INPUT_GRAIN_REF: ${{ github.event.inputs.grain_ref }}
+          INPUT_PREVIEW: ${{ github.event.inputs.preview }}
+        run: node scripts/resolve-ref.mjs
 
       - name: Clone Grain compiler repository
         uses: actions/checkout@v6
         with:
           repository: grain-lang/grain
           path: grain
+          ref: ${{ steps.grain.outputs.grain_ref }}
 
-      - name: Parse all Grain sources in grain/stdlib
-        run: |
-          set -euo pipefail
-          find grain/stdlib -type f -name '*.gr' | sort > stdlib-grain-files.txt
-          count=$(wc -l < stdlib-grain-files.txt | tr -d ' ')
-          if [ "$count" -eq 0 ]; then
-            echo 'No .gr files found under grain/stdlib' >&2
-            exit 1
-          fi
-          echo "Found $count Grain source files in grain/stdlib"
-          npx tree-sitter init-config
-          npx tree-sitter parse --paths stdlib-grain-files.txt -q
-          echo "All $count stdlib .gr files parsed successfully."
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Parse Grain stdlib (tree-sitter)
+        run: npm run test:validate
