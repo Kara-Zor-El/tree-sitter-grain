@@ -1,158 +1,74 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { readdir, stat } from "node:fs/promises";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { readdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { parseArgs } from "node:util";
 import process from "node:process";
-import { fetchLatestGrainReleaseTag } from "./lib/release-tag.mjs";
+import { cloneGrainRepo, grainRefEnv } from "./grain-ref.mjs";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const GRAIN_REPO_URL = "https://github.com/grain-lang/grain.git";
-
-/**
- * @param {string | null | undefined} cliRef
- * @param {string | undefined} envRef
- */
-export async function resolveGrainRefForClone(cliRef, envRef) {
-  const fromCli = cliRef?.trim();
-  const fromEnv = envRef?.trim();
-  const explicit = fromCli || fromEnv;
-  if (explicit) return explicit;
-  try {
-    const tag = await fetchLatestGrainReleaseTag();
-    console.log(`Using latest Grain release: ${tag}`);
-    return tag;
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.warn(`Failed to resolve the latest Grain release tag (${msg}). Falling back to main.`);
-    return "main";
-  }
-}
-
-/** @param {string} dir */
-async function existsDir(dir) {
-  try {
-    return (await stat(dir)).isDirectory();
-  } catch {
-    return false;
-  }
-}
 
 /** @param {string} stdlibDir @returns {AsyncGenerator<string>} */
 async function* walkGrainStdlib(stdlibDir) {
-  const entries = await readdir(stdlibDir, { withFileTypes: true });
+  const entries = await readdir(stdlibDir, { withFileTypes: true, recursive: true });
   for (const e of entries) {
-    const p = path.join(stdlibDir, e.name);
-    if (e.isDirectory()) yield* walkGrainStdlib(p);
-    else if (e.isFile() && e.name.endsWith(".gr")) yield p;
+    if (e.isFile() && e.name.endsWith(".gr")) yield path.join(e.parentPath, e.name);
   }
-}
-
-function parseArgs(argv) {
-  let grainRoot = null;
-  let grainRef = null;
-  let help = false;
-  for (const arg of argv) {
-    if (arg === "--help" || arg === "-h") help = true;
-    if (arg.startsWith("--grain-ref=")) grainRef = arg.slice("--grain-ref=".length);
-  }
-  return { grainRoot, grainRef, help };
 }
 
 function printHelp() {
   console.error(`Usage: node scripts/validate-stdlib.mjs [options]
 
 Options:
-  --grain-ref=REF     Git tag, branch, or commit SHA when cloning Grain
-                      (default: latest GitHub release tag)
+  -h, --help            Show this help
+  --grain-ref <REF>     Clone Grain at this ref (overrides GRAIN_ROOT and GRAIN_REF)
+  GRAIN_REF             Git ref when cloning (default: latest release, or CI dispatch inputs)
+  GRAIN_ROOT            Use an existing Grain checkout instead of cloning
 `);
 }
 
-/** @param {string} ref */
-function isProbablyCommitSha(ref) {
-  return /^[0-9a-f]{7,40}$/i.test(ref);
-}
-
 /**
- * @param {string} dest
- * @param {string} ref
- */
-function cloneGrainAtRef(dest, ref) {
-  rmSync(dest, { recursive: true, force: true });
-  mkdirSync(path.dirname(dest), { recursive: true });
-
-  if (isProbablyCommitSha(ref)) {
-    const init = spawnSync("git", ["init", dest], { stdio: "inherit" });
-    if (init.status !== 0) process.exit(init.status ?? 1);
-    const remote = spawnSync("git", ["-C", dest, "remote", "add", "origin", GRAIN_REPO_URL], {
-      stdio: "inherit",
-    });
-    if (remote.status !== 0) process.exit(remote.status ?? 1);
-    const fetch = spawnSync(
-      "git",
-      ["-C", dest, "fetch", "--depth", "1", "origin", ref],
-      { stdio: "inherit" },
-    );
-    if (fetch.status !== 0) process.exit(fetch.status ?? 1);
-    const co = spawnSync("git", ["-C", dest, "checkout", "FETCH_HEAD"], { stdio: "inherit" });
-    if (co.status !== 0) process.exit(co.status ?? 1);
-    return;
-  }
-
-  const clone = spawnSync(
-    "git",
-    ["clone", "--depth", "1", "--branch", ref, GRAIN_REPO_URL, dest],
-    { stdio: "inherit" },
-  );
-  if (clone.status !== 0) process.exit(clone.status ?? 1);
-}
-
-function warnIgnoredGrainRef(reason) {
-  const cli = process.argv.find((a) => a.startsWith("--grain-ref="));
-  const env = process.env.GRAIN_REF?.trim();
-  if (cli || env) {
-    console.warn(
-      `Note: GRAIN_REF / --grain-ref is ignored because ${reason}. Omit GRAIN_ROOT and ./grain to clone at a ref.`,
-    );
-  }
-}
-
-/**
- * @param {{ grainRootFlag: string | null, grainRefFlag: string | null }} opts
- * @returns {Promise<{ grainRoot: string, removeClone: (() => void) | null }>}
+ * @param {{ grainRefFlag: string | undefined }} opts
+ * @returns {Promise<string>}
  */
 async function ensureGrainRepo(opts) {
-  const { grainRootFlag, grainRefFlag } = opts;
+  const { grainRefFlag } = opts;
   const envRoot = process.env.GRAIN_ROOT?.trim();
 
-  if (envRoot) {
-    return { grainRoot: path.resolve(envRoot), removeClone: null };
-  }
-  if (grainRootFlag) {
-    return { grainRoot: path.resolve(grainRootFlag), removeClone: null };
+  if (grainRefFlag) {
+    if (envRoot) {
+      console.warn(
+        "Note: GRAIN_ROOT is ignored because --grain-ref is set. Unset GRAIN_ROOT or omit --grain-ref.",
+      );
+    }
+    return (await cloneGrainRepo({ ...grainRefEnv(), grainRef: grainRefFlag })).root;
   }
 
-  const ref = await resolveGrainRefForClone(grainRefFlag, process.env.GRAIN_REF);
-  const cloneDir = mkdtempSync(path.join(tmpdir(), "grain-stdlib-"));
-  console.error(`Cloning ${GRAIN_REPO_URL} @ ${ref} into ${cloneDir}`);
-  cloneGrainAtRef(cloneDir, ref);
-  return {
-    grainRoot: cloneDir,
-    removeClone: () => rmSync(cloneDir, { recursive: true, force: true }),
-  };
+  if (envRoot) return path.resolve(envRoot);
+
+  return (await cloneGrainRepo(grainRefEnv())).root;
 }
 
-async function main() {
-  const { grainRoot: grainRootFlag, grainRef: grainRefFlag, help } = parseArgs(process.argv.slice(2));
-  if (help) {
+try {
+  const { values } = parseArgs({
+    args: process.argv.slice(2),
+    options: {
+      help: { type: "boolean", short: "h", default: false },
+      "grain-ref": { type: "string" },
+    },
+    strict: true,
+    allowPositionals: false,
+  });
+  const grainRefFlag = values["grain-ref"];
+  if (values.help) {
     printHelp();
-    return;
-  }
-  const { grainRoot, removeClone } = await ensureGrainRepo({ grainRootFlag, grainRefFlag });
-  try {
+  } else {
+    const grainRoot = await ensureGrainRepo({ grainRefFlag });
     const stdlibDir = path.join(grainRoot, "stdlib");
-    if (!(await existsDir(stdlibDir))) {
+    if (!existsSync(stdlibDir)) {
       console.error(`No stdlib directory at ${stdlibDir}`);
       process.exit(1);
     }
@@ -185,12 +101,8 @@ async function main() {
     }
 
     console.error(`OK — all ${paths.length} stdlib .gr files parsed without errors.`);
-  } finally {
-    removeClone?.();
   }
-}
-
-main().catch((err) => {
+} catch (err) {
   console.error(err);
   process.exit(1);
-});
+}

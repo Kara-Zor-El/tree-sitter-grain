@@ -10,6 +10,7 @@
     "node-gyp-build": "^4.8.4"
   },
   "devDependencies": {
+    "@octokit/graphql": "^9.0.3",
     "tree-sitter-cli": "^0.26.8"
   },
   "scripts": {

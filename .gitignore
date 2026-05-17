@@ -6,6 +6,8 @@ build/
 # Node
 node_modules/
 
+grain/
+
 # Build
 build/
 _build/
@@ -13,3 +15,6 @@ _build/
 # Logs
 logs/
 logs/*
+
+# nix
+.direnv/

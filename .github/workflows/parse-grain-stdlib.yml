@@ -1,4 +1,7 @@
 name: Parse Grain stdlib
+# description: Essentially, we want to make sure that the grammar here stays up to date with the stdlib.
+# Whilst there can be changes to how language works that may not immediately be flagged as an error, adding new
+# keywords or modifying the way syntax works should result in a syntactic error.
 
 on:
   push:
@@ -26,32 +29,16 @@ jobs:
       - name: Checkout tree-sitter-grain
         uses: actions/checkout@v6
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
-        with:
-          node-version: 22
-          cache: ""
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
 
-      - name: Install C toolchain
-        run: sudo apt-get update && sudo apt-get install -y build-essential
+      - name: Install npm dependencies
+        run: nix develop -c npm ci
 
-      - name: Resolve Grain ref
-        id: grain
+      - name: Parse Grain stdlib
         env:
+          GITHUB_TOKEN: ${{ github.token }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
           INPUT_GRAIN_REF: ${{ github.event.inputs.grain_ref }}
           INPUT_PREVIEW: ${{ github.event.inputs.preview }}
-        run: node scripts/resolve-ref.mjs
-
-      - name: Clone Grain compiler repository
-        uses: actions/checkout@v6
-        with:
-          repository: grain-lang/grain
-          path: grain
-          ref: ${{ steps.grain.outputs.grain_ref }}
-
-      - name: Install npm dependencies
-        run: npm ci
-
-      - name: Parse Grain stdlib (tree-sitter)
-        run: npm run test:validate
+        run: nix develop -c npm run test:validate
