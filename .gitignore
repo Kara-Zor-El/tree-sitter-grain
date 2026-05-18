@@ -1,5 +1,3 @@
-build/
-
 # macOS
 .DS_Store
 
@@ -14,3 +12,9 @@ _build/
 # Logs
 logs/
 logs/*
+
+# Testing
+grain/
+
+# Nix
+.direnv/
