@@ -6,9 +6,7 @@
       "camelcase": "Grain",
       "scope": "source.grain",
       "path": ".",
-      "file-types": [
-        "gr"
-      ],
+      "file-types": ["gr"],
       "highlights": "queries/highlights.scm",
       "injections": "queries/injections.scm",
       "locals": "queries/locals.scm"
