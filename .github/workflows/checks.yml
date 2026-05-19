@@ -55,4 +55,4 @@ jobs:
       - name: Install npm dependencies
         run: nix develop -c npm ci
       - name: Parse Grain stdlib
-        run: nix develop -c npm run test:validate --commit=${{ github.event.inputs.commit }}
+        run: nix develop -c npm run test:validate -- --commit=${{ github.event.inputs.commit }}
