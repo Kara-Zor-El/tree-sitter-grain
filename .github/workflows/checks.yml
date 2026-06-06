@@ -1,0 +1,58 @@
+name: Parse Grain stdlib
+description: This workflow checks that the grammar is both up to date and can successfully parse the stdlib of the latest preview release of grain.
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      commit:
+        description: The commit to check. Defaults to the latest commit on the main branch."
+        type: string
+        default: "main"
+
+jobs:
+  # Validate the bindings are up to date with the parser
+  check-generated:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tree-sitter-grain
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+      - name: Install npm dependencies
+        run: nix develop -c npm ci
+      - name: Check generated code is up to date
+        run: nix develop -c npm run build
+      - name: Check generated code is up to date with git
+        run: git diff --exit-code --name-only -- 'binding/*'
+  # Validate the formatting
+  check-formatting:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tree-sitter-grain
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+      - name: Install npm dependencies
+        run: nix develop -c npm ci
+      - name: Check formatting is up to date with git
+        run: nix develop -c npm run check-format
+  # Validates the latest stdlib can be parsed
+  check-stdlib:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout tree-sitter-grain
+        uses: actions/checkout@v6
+      - name: Install Nix
+        uses: cachix/install-nix-action@v31
+      - name: Install npm dependencies
+        run: nix develop -c npm ci
+      - name: Parse Grain stdlib
+        run: nix develop -c npm run test:validate -- --commit=${{ github.event.inputs.commit }}

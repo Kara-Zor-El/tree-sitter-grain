@@ -1,11 +1,8 @@
-build/
-
 # macOS
 .DS_Store
 
 # Node
 node_modules/
-package-lock.json
 
 # Build
 build/
@@ -14,3 +11,9 @@ _build/
 # Logs
 logs/
 logs/*
+
+# Testing
+grain/
+
+# Nix
+.direnv/

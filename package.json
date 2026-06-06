@@ -10,15 +10,20 @@
     "node-gyp-build": "^4.8.4"
   },
   "devDependencies": {
-    "tree-sitter-cli": "^0.26.8"
+    "tree-sitter-cli": "^0.26.8",
+    "tree-sitter": "^0.25.0",
+    "prettier": "^3.8.3"
   },
   "scripts": {
     "install": "node-gyp-build",
     "prestart": "tree-sitter build --wasm",
     "start": "tree-sitter playground",
     "test": "tree-sitter test",
+    "test:validate": "npm run build && node test.mjs",
     "generate": "tree-sitter generate",
     "build": "npm run generate && node-gyp rebuild",
-    "build-wasm": "tree-sitter build --wasm"
+    "build-wasm": "tree-sitter build --wasm",
+    "format": "prettier --write .",
+    "check-format": "prettier --check ."
   }
 }
