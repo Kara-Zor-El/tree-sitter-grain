@@ -264,7 +264,7 @@
     "named": true,
     "subtypes": [
       {
-        "type": "data_declaration_statement",
+        "type": "data_declaration_statements",
         "named": true
       },
       {
@@ -1151,12 +1151,12 @@
     }
   },
   {
-    "type": "data_declaration_statement",
+    "type": "data_declaration_statements",
     "named": true,
     "fields": {},
     "children": {
       "multiple": true,
-      "required": true,
+      "required": false,
       "types": [
         {
           "type": "attributes",
@@ -2473,21 +2473,6 @@
     }
   },
   {
-    "type": "record_declaration_body",
-    "named": true,
-    "fields": {},
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "record_field_declaration",
-          "named": true
-        }
-      ]
-    }
-  },
-  {
     "type": "record_expression",
     "named": true,
     "fields": {},
@@ -2741,7 +2726,7 @@
       "required": true,
       "types": [
         {
-          "type": "record_declaration_body",
+          "type": "data_constructor_record",
           "named": true
         },
         {
