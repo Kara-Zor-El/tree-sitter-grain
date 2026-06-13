@@ -628,11 +628,10 @@ export default grammar({
         "(",
         field("value", $._expression),
         ")",
-        "{",
-        commaSep1($.match_branch),
-        optional(","),
-        "}",
+        field("body", $.match_body),
       ),
+
+    match_body: ($) => seq("{", commaSep1($.match_branch), optional(","), "}"),
 
     match_branch: ($) =>
       seq(
