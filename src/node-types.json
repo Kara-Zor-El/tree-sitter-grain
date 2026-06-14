@@ -2004,6 +2004,21 @@
     }
   },
   {
+    "type": "match_body",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": true,
+      "types": [
+        {
+          "type": "match_branch",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "match_branch",
     "named": true,
     "fields": {
@@ -2043,6 +2058,16 @@
     "type": "match_expression",
     "named": true,
     "fields": {
+      "body": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "match_body",
+            "named": true
+          }
+        ]
+      },
       "value": {
         "multiple": false,
         "required": true,
@@ -2053,16 +2078,6 @@
           }
         ]
       }
-    },
-    "children": {
-      "multiple": true,
-      "required": true,
-      "types": [
-        {
-          "type": "match_branch",
-          "named": true
-        }
-      ]
     }
   },
   {

@@ -5,6 +5,7 @@
 (for_expression) @local.scope
 (while_expression) @local.scope
 (match_branch) @local.scope
+(match_body) @local.scope
 (module_declaration) @local.scope
 
 ; Definitions
