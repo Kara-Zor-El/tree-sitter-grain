@@ -377,38 +377,17 @@
   {
     "type": "application_argument",
     "named": true,
-    "fields": {
-      "label": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "identifier",
-            "named": true
-          },
-          {
-            "type": "special_identifier",
-            "named": true
-          }
-        ]
-      },
-      "value": {
-        "multiple": false,
-        "required": false,
-        "types": [
-          {
-            "type": "_expression",
-            "named": true
-          }
-        ]
-      }
-    },
+    "fields": {},
     "children": {
       "multiple": false,
-      "required": false,
+      "required": true,
       "types": [
         {
-          "type": "_expression",
+          "type": "labeled_application_argument",
+          "named": true
+        },
+        {
+          "type": "positional_application_argument",
           "named": true
         }
       ]
@@ -417,6 +396,164 @@
   {
     "type": "application_expression",
     "named": true,
+    "fields": {
+      "arguments": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "argument_list",
+            "named": true
+          }
+        ]
+      },
+      "function": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "application_expression",
+            "named": true
+          },
+          {
+            "type": "array_expression",
+            "named": true
+          },
+          {
+            "type": "array_get_expression",
+            "named": true
+          },
+          {
+            "type": "bigint_literal",
+            "named": true
+          },
+          {
+            "type": "block_expression",
+            "named": true
+          },
+          {
+            "type": "boolean",
+            "named": true
+          },
+          {
+            "type": "bytes",
+            "named": true
+          },
+          {
+            "type": "char",
+            "named": true
+          },
+          {
+            "type": "constructor_expression",
+            "named": true
+          },
+          {
+            "type": "float32_literal",
+            "named": true
+          },
+          {
+            "type": "float64_literal",
+            "named": true
+          },
+          {
+            "type": "float_literal",
+            "named": true
+          },
+          {
+            "type": "identifier_expression",
+            "named": true
+          },
+          {
+            "type": "int16_literal",
+            "named": true
+          },
+          {
+            "type": "int32_literal",
+            "named": true
+          },
+          {
+            "type": "int64_literal",
+            "named": true
+          },
+          {
+            "type": "int8_literal",
+            "named": true
+          },
+          {
+            "type": "list_expression",
+            "named": true
+          },
+          {
+            "type": "number_literal",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "rational_literal",
+            "named": true
+          },
+          {
+            "type": "record_expression",
+            "named": true
+          },
+          {
+            "type": "record_get_expression",
+            "named": true
+          },
+          {
+            "type": "string",
+            "named": true
+          },
+          {
+            "type": "tuple_expression",
+            "named": true
+          },
+          {
+            "type": "uint16_literal",
+            "named": true
+          },
+          {
+            "type": "uint32_literal",
+            "named": true
+          },
+          {
+            "type": "uint64_literal",
+            "named": true
+          },
+          {
+            "type": "uint8_literal",
+            "named": true
+          },
+          {
+            "type": "void",
+            "named": true
+          },
+          {
+            "type": "wasmf32_literal",
+            "named": true
+          },
+          {
+            "type": "wasmf64_literal",
+            "named": true
+          },
+          {
+            "type": "wasmi32_literal",
+            "named": true
+          },
+          {
+            "type": "wasmi64_literal",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "argument_list",
+    "named": true,
     "fields": {},
     "children": {
       "multiple": true,
@@ -424,142 +561,6 @@
       "types": [
         {
           "type": "application_argument",
-          "named": true
-        },
-        {
-          "type": "application_expression",
-          "named": true
-        },
-        {
-          "type": "array_expression",
-          "named": true
-        },
-        {
-          "type": "array_get_expression",
-          "named": true
-        },
-        {
-          "type": "bigint_literal",
-          "named": true
-        },
-        {
-          "type": "block_expression",
-          "named": true
-        },
-        {
-          "type": "boolean",
-          "named": true
-        },
-        {
-          "type": "bytes",
-          "named": true
-        },
-        {
-          "type": "char",
-          "named": true
-        },
-        {
-          "type": "constructor_expression",
-          "named": true
-        },
-        {
-          "type": "float32_literal",
-          "named": true
-        },
-        {
-          "type": "float64_literal",
-          "named": true
-        },
-        {
-          "type": "float_literal",
-          "named": true
-        },
-        {
-          "type": "identifier_expression",
-          "named": true
-        },
-        {
-          "type": "int16_literal",
-          "named": true
-        },
-        {
-          "type": "int32_literal",
-          "named": true
-        },
-        {
-          "type": "int64_literal",
-          "named": true
-        },
-        {
-          "type": "int8_literal",
-          "named": true
-        },
-        {
-          "type": "list_expression",
-          "named": true
-        },
-        {
-          "type": "number_literal",
-          "named": true
-        },
-        {
-          "type": "parenthesized_expression",
-          "named": true
-        },
-        {
-          "type": "rational_literal",
-          "named": true
-        },
-        {
-          "type": "record_expression",
-          "named": true
-        },
-        {
-          "type": "record_get_expression",
-          "named": true
-        },
-        {
-          "type": "string",
-          "named": true
-        },
-        {
-          "type": "tuple_expression",
-          "named": true
-        },
-        {
-          "type": "uint16_literal",
-          "named": true
-        },
-        {
-          "type": "uint32_literal",
-          "named": true
-        },
-        {
-          "type": "uint64_literal",
-          "named": true
-        },
-        {
-          "type": "uint8_literal",
-          "named": true
-        },
-        {
-          "type": "void",
-          "named": true
-        },
-        {
-          "type": "wasmf32_literal",
-          "named": true
-        },
-        {
-          "type": "wasmf64_literal",
-          "named": true
-        },
-        {
-          "type": "wasmi32_literal",
-          "named": true
-        },
-        {
-          "type": "wasmi64_literal",
           "named": true
         }
       ]
@@ -1877,6 +1878,36 @@
     "fields": {}
   },
   {
+    "type": "labeled_application_argument",
+    "named": true,
+    "fields": {
+      "label": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "special_identifier",
+            "named": true
+          }
+        ]
+      },
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "lambda_argument",
     "named": true,
     "fields": {},
@@ -2203,6 +2234,22 @@
           "named": true
         }
       ]
+    }
+  },
+  {
+    "type": "positional_application_argument",
+    "named": true,
+    "fields": {
+      "value": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "_expression",
+            "named": true
+          }
+        ]
+      }
     }
   },
   {
