@@ -82,7 +82,7 @@ export default grammar({
     [$.punned_record_field, $._record_pattern_field],
     [$.lambda_argument, $.tuple_pattern],
     [$.lambda_argument, $.parenthesized_pattern],
-    [$.application_argument, $.qualified_identifier],
+    [$.labeled_application_argument, $.qualified_identifier],
     [$._arrow_type_argument, $.tuple_type],
     [$._arrow_type_argument, $.parenthesized_type],
     [$.lambda_expression, $._id_str],
@@ -542,22 +542,26 @@ export default grammar({
       seq($.qualified_identifier, ":", $._expression),
     spread_record_field: ($) => seq("...", $._expression),
 
+    argument_list: ($) => seq(commaSep1($.application_argument), optional(",")),
+
     application_expression: ($) =>
       prec.left(
         PREC.CALL,
         seq(
-          $._left_accessor_expression,
+          field("function", $._left_accessor_expression),
           "(",
-          optional(seq(commaSep1($.application_argument), optional(","))),
+          optional(field("arguments", $.argument_list)),
           ")",
         ),
       ),
 
+    labeled_application_argument: ($) =>
+      seq(field("label", $._id_str), "=", field("value", $._expression)),
+
+    positional_application_argument: ($) => field("value", $._expression),
+
     application_argument: ($) =>
-      choice(
-        $._expression,
-        seq(field("label", $._id_str), "=", field("value", $._expression)),
-      ),
+      choice($.labeled_application_argument, $.positional_application_argument),
 
     lambda_expression: ($) =>
       prec.right(
