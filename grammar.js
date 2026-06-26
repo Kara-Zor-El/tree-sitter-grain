@@ -274,10 +274,14 @@ export default grammar({
       seq(
         optional($.attributes),
         "from",
-        field("path", $.string),
-        "include",
-        field("module", $.qualified_type_identifier),
-        optional(seq("as", field("alias", $.qualified_type_identifier))),
+        field("path", $.import_path_string),
+        optional(
+          seq(
+            "include",
+            field("module", $.qualified_type_identifier),
+            optional(seq("as", field("alias", $.qualified_type_identifier))),
+          ),
+        ),
       ),
 
     // --- Use ---
@@ -970,6 +974,15 @@ export default grammar({
 
     boolean: ($) => choice("true", "false"),
     void: ($) => "void",
+
+    import_path_string: ($) =>
+      choice(
+        prec(
+          2,
+          seq('"', repeat(choice($.escape_sequence, $.string_content)), '"'),
+        ),
+        prec(1, seq('"', repeat1(choice($.escape_sequence, $.string_content)))),
+      ),
 
     string: ($) =>
       seq('"', repeat(choice($.escape_sequence, $.string_content)), '"'),
