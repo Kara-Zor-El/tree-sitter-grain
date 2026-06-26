@@ -1827,6 +1827,25 @@
     }
   },
   {
+    "type": "import_path_string",
+    "named": true,
+    "fields": {},
+    "children": {
+      "multiple": true,
+      "required": false,
+      "types": [
+        {
+          "type": "escape_sequence",
+          "named": true
+        },
+        {
+          "type": "string_content",
+          "named": true
+        }
+      ]
+    }
+  },
+  {
     "type": "include_declaration",
     "named": true,
     "fields": {
@@ -1842,7 +1861,7 @@
       },
       "module": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "qualified_type_identifier",
@@ -1855,7 +1874,7 @@
         "required": true,
         "types": [
           {
-            "type": "string",
+            "type": "import_path_string",
             "named": true
           }
         ]

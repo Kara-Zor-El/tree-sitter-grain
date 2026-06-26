@@ -91,12 +91,19 @@
 
 (void) @constant.builtin
 
-(string) @string
+[
+  (string)
+  (import_path_string)
+] @string
 (char) @character
 (bytes) @string.special
 
-(string
-  (escape_sequence) @string.escape)
+[
+  (string
+    (escape_sequence) @string.escape)
+  (import_path_string
+    (escape_sequence) @string.escape)
+]
 
 (bytes
   (escape_sequence) @string.escape)
@@ -204,7 +211,7 @@
 (non_punned_record_field
   (qualified_identifier) @variable.member)
 
-(application_argument
+(labeled_application_argument
   label: (_) @variable.parameter)
 
 (arrow_type
