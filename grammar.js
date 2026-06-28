@@ -271,15 +271,23 @@ export default grammar({
     // --- Include ---
 
     include_declaration: ($) =>
-      seq(
-        optional($.attributes),
-        "from",
-        field("path", $.import_path_string),
-        optional(
-          seq(
-            "include",
-            field("module", $.qualified_type_identifier),
-            optional(seq("as", field("alias", $.qualified_type_identifier))),
+      prec.right(
+        seq(
+          optional($.attributes),
+          "from",
+          field("path", $.import_path_string),
+          optional(
+            seq(
+              "include",
+              optional(
+                seq(
+                  field("module", $.qualified_type_identifier),
+                  optional(
+                    seq("as", field("alias", $.qualified_type_identifier)),
+                  ),
+                ),
+              ),
+            ),
           ),
         ),
       ),
