@@ -1339,83 +1339,100 @@
       ]
     },
     "include_declaration": {
-      "type": "SEQ",
-      "members": [
-        {
-          "type": "CHOICE",
-          "members": [
-            {
+      "type": "PREC_RIGHT",
+      "value": 0,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SYMBOL",
+                "name": "attributes"
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          },
+          {
+            "type": "STRING",
+            "value": "from"
+          },
+          {
+            "type": "FIELD",
+            "name": "path",
+            "content": {
               "type": "SYMBOL",
-              "name": "attributes"
-            },
-            {
-              "type": "BLANK"
+              "name": "import_path_string"
             }
-          ]
-        },
-        {
-          "type": "STRING",
-          "value": "from"
-        },
-        {
-          "type": "FIELD",
-          "name": "path",
-          "content": {
-            "type": "SYMBOL",
-            "name": "import_path_string"
-          }
-        },
-        {
-          "type": "CHOICE",
-          "members": [
-            {
-              "type": "SEQ",
-              "members": [
-                {
-                  "type": "STRING",
-                  "value": "include"
-                },
-                {
-                  "type": "FIELD",
-                  "name": "module",
-                  "content": {
-                    "type": "SYMBOL",
-                    "name": "qualified_type_identifier"
-                  }
-                },
-                {
-                  "type": "CHOICE",
-                  "members": [
-                    {
-                      "type": "SEQ",
-                      "members": [
-                        {
-                          "type": "STRING",
-                          "value": "as"
-                        },
-                        {
-                          "type": "FIELD",
-                          "name": "alias",
-                          "content": {
-                            "type": "SYMBOL",
-                            "name": "qualified_type_identifier"
+          },
+          {
+            "type": "CHOICE",
+            "members": [
+              {
+                "type": "SEQ",
+                "members": [
+                  {
+                    "type": "STRING",
+                    "value": "include"
+                  },
+                  {
+                    "type": "CHOICE",
+                    "members": [
+                      {
+                        "type": "SEQ",
+                        "members": [
+                          {
+                            "type": "FIELD",
+                            "name": "module",
+                            "content": {
+                              "type": "SYMBOL",
+                              "name": "qualified_type_identifier"
+                            }
+                          },
+                          {
+                            "type": "CHOICE",
+                            "members": [
+                              {
+                                "type": "SEQ",
+                                "members": [
+                                  {
+                                    "type": "STRING",
+                                    "value": "as"
+                                  },
+                                  {
+                                    "type": "FIELD",
+                                    "name": "alias",
+                                    "content": {
+                                      "type": "SYMBOL",
+                                      "name": "qualified_type_identifier"
+                                    }
+                                  }
+                                ]
+                              },
+                              {
+                                "type": "BLANK"
+                              }
+                            ]
                           }
-                        }
-                      ]
-                    },
-                    {
-                      "type": "BLANK"
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "BLANK"
-            }
-          ]
-        }
-      ]
+                        ]
+                      },
+                      {
+                        "type": "BLANK"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "type": "BLANK"
+              }
+            ]
+          }
+        ]
+      }
     },
     "use_expression": {
       "type": "SEQ",
