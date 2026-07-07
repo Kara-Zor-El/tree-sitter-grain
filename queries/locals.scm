@@ -26,7 +26,9 @@
 
 (module_declaration name: (upper_identifier) @local.definition.namespace)
 (module_header name: (upper_identifier) @local.definition.namespace)
-(include_declaration alias: (qualified_type_identifier) @local.definition.namespace)
+(include_declaration
+  include: (import_include_clause
+    alias: (qualified_type_identifier) @local.definition.namespace))
 
 ; References
 (identifier_expression) @local.reference

@@ -86,6 +86,10 @@ export default grammar({
     [$._arrow_type_argument, $.tuple_type],
     [$._arrow_type_argument, $.parenthesized_type],
     [$.lambda_expression, $._id_str],
+    [$.type_alias, $.incomplete_type_alias],
+    [$._type_alias_body, $.incomplete_type_alias],
+    [$._type_alias_body, $.incomplete_provide_declaration],
+    [$.data_constructor_tuple, $.incomplete_data_constructor_tuple],
   ],
 
   rules: {
@@ -120,8 +124,10 @@ export default grammar({
         $.module_declaration,
         $.primitive_declaration,
         $.provide_declaration,
+        $.incomplete_provide_declaration,
         $.exception_declaration,
         $.expression_statement,
+        $.incomplete_type_alias,
       ),
 
     // --- Provide ---
@@ -130,18 +136,42 @@ export default grammar({
       choice(
         seq(
           optional($.attributes),
-          "provide",
-          "let",
-          optional("rec"),
-          optional("mut"),
+          $.provide_header,
+          $.let_header,
           $.value_bindings,
         ),
-        seq(optional($.attributes), "provide", $._foreign_body),
-        seq(optional($.attributes), "provide", $._primitive_body),
-        seq(optional($.attributes), "provide", $._exception_body),
-        seq(optional($.attributes), "provide", $.provide_shape),
-        seq(optional($.attributes), "provide", $._module_body),
+        seq(optional($.attributes), $.provide_header, $._foreign_body),
+        seq(optional($.attributes), $.provide_header, $._primitive_body),
+        seq(optional($.attributes), $.provide_header, $._exception_body),
+        seq(optional($.attributes), $.provide_header, $.provide_shape),
+        seq(optional($.attributes), $.provide_header, $._module_body),
+        seq(
+          optional($.attributes),
+          $.provide_header,
+          sep1("and", $._provided_data_declaration),
+        ),
       ),
+
+    incomplete_provide_declaration: ($) =>
+      choice(
+        seq(
+          optional($.attributes),
+          $.provide_header,
+          field("name", $._id_str),
+        ),
+        seq(
+          optional($.attributes),
+          $.provide_header,
+          $.provide_type_header,
+        ),
+      ),
+
+    provide_header: ($) => "provide",
+
+    provide_type_header: ($) =>
+      seq("type", optional(field("rec", "rec"))),
+
+    provide_abstract_prefix: ($) => "abstract",
 
     provide_shape: ($) =>
       seq("{", optional(seq(commaSep1($.provide_item), optional(","))), "}"),
@@ -161,23 +191,47 @@ export default grammar({
 
     // --- Let ---
 
-    let_declaration: ($) =>
+    let_header: ($) =>
       seq(
-        optional($.attributes),
         "let",
-        optional("rec"),
-        optional("mut"),
-        $.value_bindings,
+        optional(field("rec", "rec")),
+        optional(field("mut", "mut")),
       ),
 
-    let_expression: ($) =>
-      seq(
-        optional($.attributes),
-        "let",
-        optional("rec"),
-        optional("mut"),
-        $.value_bindings,
+    let_declaration: ($) =>
+      choice(
+        prec(2, seq(optional($.attributes), $.let_header, $.value_bindings)),
+        prec(
+          1,
+          seq(
+            optional($.attributes),
+            $.let_header,
+            field("pattern", $._pattern),
+            ":",
+            field("type", $._type),
+          ),
+        ),
+        prec(
+          -1,
+          seq(
+            optional($.attributes),
+            $.let_header,
+            field("pattern", $._pattern),
+            ":",
+          ),
+        ),
+        seq(
+          optional($.attributes),
+          "let",
+          field("modifier_prefix", $.let_modifier_prefix),
+        ),
+        prec(-10, seq(optional($.attributes), $.let_header)),
       ),
+
+    let_modifier_prefix: ($) => choice("re", "r", "mu", "m"),
+
+    let_expression: ($) =>
+      seq(optional($.attributes), $.let_header, $.value_bindings),
 
     value_bindings: ($) => sep1("and", $.value_binding),
 
@@ -192,35 +246,53 @@ export default grammar({
     _data_declaration: ($) =>
       choice($.type_alias, $.enum_declaration, $.record_type_declaration),
 
-    type_alias: ($) =>
+    _provided_data_declaration: ($) =>
+      choice(
+        alias($._type_alias_body, $.type_alias),
+        alias($._enum_declaration_body, $.enum_declaration),
+        alias($._record_type_declaration_body, $.record_type_declaration),
+      ),
+
+    _type_alias_body: ($) =>
       seq(
-        optional(choice("provide", "abstract")),
-        "type",
-        optional("rec"),
+        $.provide_type_header,
         field("name", $.upper_identifier),
         optional($.type_parameters),
         "=",
         $._type,
       ),
 
-    enum_declaration: ($) =>
+    type_alias: ($) =>
+      seq(optional($.provide_abstract_prefix), $._type_alias_body),
+
+    incomplete_type_alias: ($) =>
+      seq(optional($.provide_abstract_prefix), $.provide_type_header),
+
+    _enum_declaration_body: ($) =>
       seq(
-        optional(choice("provide", "abstract")),
         "enum",
-        optional("rec"),
+        optional(field("rec", "rec")),
         field("name", $.upper_identifier),
         optional($.type_parameters),
         $.enum_body,
       ),
 
-    record_type_declaration: ($) =>
+    enum_declaration: ($) =>
+      seq(optional($.provide_abstract_prefix), $._enum_declaration_body),
+
+    _record_type_declaration_body: ($) =>
       seq(
-        optional(choice("provide", "abstract")),
         "record",
-        optional("rec"),
+        optional(field("rec", "rec")),
         field("name", $.upper_identifier),
         optional($.type_parameters),
         $.record_declaration_body,
+      ),
+
+    record_type_declaration: ($) =>
+      seq(
+        optional($.provide_abstract_prefix),
+        $._record_type_declaration_body,
       ),
 
     type_parameters: ($) =>
@@ -233,20 +305,45 @@ export default grammar({
     enum_variant: ($) =>
       seq(
         field("name", $.upper_identifier),
-        optional(choice($.data_constructor_tuple, $.data_constructor_record)),
+        optional(
+          choice(
+            $.data_constructor_tuple,
+            $.data_constructor_record,
+            $.incomplete_data_constructor_tuple,
+          ),
+        ),
       ),
 
     data_constructor_tuple: ($) =>
-      seq("(", commaSep1($._type), optional(","), ")"),
+      prec(
+        2,
+        seq("(", commaSep1(field("type", $._type)), optional(","), ")"),
+      ),
+    incomplete_data_constructor_tuple: ($) =>
+      prec(1, seq("(", commaSep(field("type", $._type)))),
     data_constructor_record: ($) =>
       seq("{", commaSep1($.record_field_declaration), optional(","), "}"),
 
+    record_field_mut: ($) => "mut",
+
     record_field_declaration: ($) =>
-      seq(
-        optional("mut"),
-        field("name", $._id_str),
-        ":",
-        field("type", $._type),
+      choice(
+        prec(
+          2,
+          seq(
+            optional($.record_field_mut),
+            field("name", $._id_str),
+            ":",
+            field("type", $._type),
+          ),
+        ),
+        prec(
+          1,
+          seq(
+            optional($.record_field_mut),
+            field("name", $._id_str),
+          ),
+        ),
       ),
 
     record_declaration_body: ($) =>
@@ -270,27 +367,46 @@ export default grammar({
 
     // --- Include ---
 
-    include_declaration: ($) =>
+    import_from_clause: ($) =>
+      seq("from", field("path", $.import_path_string)),
+
+    import_include_clause: ($) =>
       prec.right(
         seq(
-          optional($.attributes),
-          "from",
-          field("path", $.import_path_string),
+          "include",
           optional(
             seq(
-              "include",
-              optional(
-                seq(
-                  field("module", $.qualified_type_identifier),
-                  optional(
-                    seq("as", field("alias", $.qualified_type_identifier)),
-                  ),
-                ),
-              ),
+              field("module", $.qualified_type_identifier),
+              optional(seq("as", field("alias", $.qualified_type_identifier))),
             ),
           ),
         ),
       ),
+
+    include_declaration: ($) =>
+      prec.right(
+        choice(
+          prec(
+            2,
+            seq(
+              optional($.attributes),
+              field("from", $.import_from_clause),
+              optional(field("include", $.import_include_clause)),
+            ),
+          ),
+          prec(
+            1,
+            seq(
+              optional($.attributes),
+              field("from", $.import_from_clause),
+              field("include_keyword_prefix", $.include_keyword_prefix),
+            ),
+          ),
+        ),
+      ),
+
+    include_keyword_prefix: ($) =>
+      choice("includ", "inclu", "incl", "inci", "inc", "in", "i"),
 
     // --- Use ---
 
@@ -528,9 +644,9 @@ export default grammar({
         ")",
       ),
 
-    block_expression: ($) => seq("{", $._block_body, "}"),
+    block_expression: ($) => seq("{", field("statements", $.block_body), "}"),
 
-    _block_body: ($) =>
+    block_body: ($) =>
       seq(
         $._block_body_expression,
         repeat(seq(optional(";"), $._block_body_expression)),
@@ -606,15 +722,33 @@ export default grammar({
 
     if_expression: ($) =>
       prec.right(
-        seq(
-          "if",
-          "(",
-          field("condition", $._expression),
-          ")",
-          field("consequence", $._expression),
-          optional(seq("else", field("alternative", $._expression))),
+        choice(
+          prec(
+            2,
+            seq(
+              "if",
+              "(",
+              field("condition", $._expression),
+              ")",
+              field("consequence", $._expression),
+              optional(seq("else", field("alternative", $._expression))),
+            ),
+          ),
+          prec(
+            1,
+            seq(
+              "if",
+              "(",
+              field("condition", $._expression),
+              ")",
+              field("consequence", $._expression),
+              field("else_keyword_prefix", $.else_keyword_prefix),
+            ),
+          ),
         ),
       ),
+
+    else_keyword_prefix: ($) => choice("els", "el", "e"),
 
     while_expression: ($) =>
       seq(
@@ -650,12 +784,27 @@ export default grammar({
     match_body: ($) => seq("{", commaSep1($.match_branch), optional(","), "}"),
 
     match_branch: ($) =>
-      seq(
-        field("pattern", $._pattern),
-        optional($.when_guard),
-        "=>",
-        field("body", $._expression),
+      choice(
+        prec(
+          2,
+          seq(
+            field("pattern", $._pattern),
+            optional($.when_guard),
+            "=>",
+            field("body", $._expression),
+          ),
+        ),
+        prec(
+          1,
+          seq(
+            field("pattern", $._pattern),
+            field("when_keyword_prefix", $.when_keyword_prefix),
+          ),
+        ),
+        prec(1, field("pattern", $._pattern)),
       ),
+
+    when_keyword_prefix: ($) => choice("whe", "wh", "w"),
 
     when_guard: ($) => seq("when", $._expression),
 

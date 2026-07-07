@@ -127,14 +127,17 @@
   operator: (prefix_operator) @operator)
 
 ; Import/export keywords
-(include_declaration
+(import_from_clause
   "from" @keyword.import)
 
 (foreign_declaration
-  "from" @keyword)
+  "from" @keyword.import)
 
 (provide_declaration
-  "provide" @keyword.export)
+  (provide_header) @keyword.export)
+
+(incomplete_provide_declaration
+  (provide_header) @keyword.export)
 
 ; Keywords (anonymous terminals — excludes query-reserved spellings:
 ; break, continue, void, await, import, …)
@@ -145,7 +148,6 @@
   "wasm"
   "primitive"
   "exception"
-  "abstract"
   "type"
   "enum"
   "record"
@@ -157,6 +159,8 @@
   "is"
   "isnt"
 ] @keyword
+
+(provide_abstract_prefix) @keyword
 
 [
   "use"
@@ -229,13 +233,15 @@
  (#set! priority 105))
 
 ((include_declaration
-  module: (qualified_type_identifier
-    (upper_identifier) @namespace))
+  include: (import_include_clause
+    module: (qualified_type_identifier
+      (upper_identifier) @namespace)))
  (#set! priority 105))
 
 ((include_declaration
-  alias: (qualified_type_identifier
-    (upper_identifier) @namespace))
+  include: (import_include_clause
+    alias: (qualified_type_identifier
+      (upper_identifier) @namespace)))
  (#set! priority 105))
 
 ((module_header
