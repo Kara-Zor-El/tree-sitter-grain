@@ -20,6 +20,3 @@ grain/
 
 # Nix
 .direnv/
-
-# Wasm
-tree-sitter-grain.wasm
