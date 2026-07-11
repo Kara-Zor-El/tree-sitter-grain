@@ -2,7 +2,7 @@
 #include <caml/memory.h>
 #include <caml/mlvalues.h>
 
-#include <tree_sitter/api.h>
+typedef struct TSLanguage TSLanguage;
 
 const TSLanguage *tree_sitter_grain(void);
 

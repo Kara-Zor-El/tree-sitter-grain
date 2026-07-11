@@ -8,10 +8,4 @@
  (foreign_stubs
   (language c)
   (names parser tree_sitter_grain_stubs)
-  (flags
-   (:standard)
-   (:include ../config/cflags.sexp))
-  (include_dirs ../../../src))
- (c_library_flags
-  (:standard)
-  (:include ../config/clibs.sexp)))
+  (include_dirs ../../../src)))

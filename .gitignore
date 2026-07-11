@@ -7,6 +7,9 @@ node_modules/
 # Build
 build/
 _build/
+_esy/
+esy.lock/
+*.install
 
 # Logs
 logs/
