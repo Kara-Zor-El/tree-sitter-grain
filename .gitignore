@@ -10,6 +10,7 @@ _build/
 _esy/
 esy.lock/
 *.install
+.tmp/
 
 # Logs
 logs/

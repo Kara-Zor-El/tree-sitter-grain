@@ -2,7 +2,7 @@
   "name": "tree-sitter-grain",
   "version": "0.1.0",
   "description": "Grain grammar for tree-sitter",
-  "license": "MIT",
+  "license": "LGPL-3.0-only",
   "type": "module",
   "main": "bindings/node",
   "dependencies": {
