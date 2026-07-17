@@ -86,7 +86,6 @@ export default grammar({
     [$._arrow_type_argument, $.tuple_type],
     [$._arrow_type_argument, $.parenthesized_type],
     [$.lambda_expression, $._id_str],
-    [$.type_alias, $.incomplete_type_alias],
     [$._type_alias_body, $.incomplete_type_alias],
     [$._type_alias_body, $.incomplete_provide_declaration],
     [$.data_constructor_tuple, $.incomplete_data_constructor_tuple],
@@ -154,22 +153,13 @@ export default grammar({
 
     incomplete_provide_declaration: ($) =>
       choice(
-        seq(
-          optional($.attributes),
-          $.provide_header,
-          field("name", $._id_str),
-        ),
-        seq(
-          optional($.attributes),
-          $.provide_header,
-          $.provide_type_header,
-        ),
+        seq(optional($.attributes), $.provide_header, field("name", $._id_str)),
+        seq(optional($.attributes), $.provide_header, $.provide_type_header),
       ),
 
     provide_header: ($) => "provide",
 
-    provide_type_header: ($) =>
-      seq("type", optional(field("rec", "rec"))),
+    provide_type_header: ($) => seq("type", optional(field("rec", "rec"))),
 
     provide_abstract_prefix: ($) => "abstract",
 
@@ -192,11 +182,7 @@ export default grammar({
     // --- Let ---
 
     let_header: ($) =>
-      seq(
-        "let",
-        optional(field("rec", "rec")),
-        optional(field("mut", "mut")),
-      ),
+      seq("let", optional(field("rec", "rec")), optional(field("mut", "mut"))),
 
     let_declaration: ($) =>
       choice(
@@ -290,10 +276,7 @@ export default grammar({
       ),
 
     record_type_declaration: ($) =>
-      seq(
-        optional($.provide_abstract_prefix),
-        $._record_type_declaration_body,
-      ),
+      seq(optional($.provide_abstract_prefix), $._record_type_declaration_body),
 
     type_parameters: ($) =>
       seq("<", commaSep1($.type_variable), optional(","), ">"),
@@ -315,10 +298,7 @@ export default grammar({
       ),
 
     data_constructor_tuple: ($) =>
-      prec(
-        2,
-        seq("(", commaSep1(field("type", $._type)), optional(","), ")"),
-      ),
+      prec(2, seq("(", commaSep1(field("type", $._type)), optional(","), ")")),
     incomplete_data_constructor_tuple: ($) =>
       prec(1, seq("(", commaSep(field("type", $._type)))),
     data_constructor_record: ($) =>
@@ -337,13 +317,7 @@ export default grammar({
             field("type", $._type),
           ),
         ),
-        prec(
-          1,
-          seq(
-            optional($.record_field_mut),
-            field("name", $._id_str),
-          ),
-        ),
+        prec(1, seq(optional($.record_field_mut), field("name", $._id_str))),
       ),
 
     record_declaration_body: ($) =>
@@ -367,8 +341,7 @@ export default grammar({
 
     // --- Include ---
 
-    import_from_clause: ($) =>
-      seq("from", field("path", $.import_path_string)),
+    import_from_clause: ($) => seq("from", field("path", $.import_path_string)),
 
     import_include_clause: ($) =>
       prec.right(
@@ -410,10 +383,17 @@ export default grammar({
 
     // --- Use ---
 
-    use_expression: ($) => seq("use", $.upper_identifier, ".", $._use_tail),
+    use_expression: ($) =>
+      prec.right(
+        seq("use", optional(seq($.upper_identifier, optional($._use_tail)))),
+      ),
 
     _use_tail: ($) =>
-      choice(seq($.upper_identifier, ".", $._use_tail), $.use_shape),
+      choice(
+        prec(2, seq(".", $.upper_identifier, $._use_tail)),
+        prec(2, seq(".", $.use_shape)),
+        prec(1, "."),
+      ),
 
     use_shape: ($) =>
       choice(

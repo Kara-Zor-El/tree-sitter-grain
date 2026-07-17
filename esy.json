@@ -2,9 +2,7 @@
   "name": "@grain/tree-sitter-grain",
   "version": "0.1.0",
   "esy": {
-    "build": [
-      "dune build -p tree-sitter-grain --no-buffer"
-    ],
+    "build": ["dune build -p tree-sitter-grain --no-buffer"],
     "buildEnv": {
       "DUNE_BUILD_DIR": "#{self.target_dir}"
     }
