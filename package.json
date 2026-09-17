@@ -1,7 +1,7 @@
 {
   "name": "tree-sitter-grain",
   "version": "0.1.1",
-  "description": "Grain grammar for tree-sitter",
+  "description": "Grain language grammar for tree-sitter",
   "license": "MIT",
   "author": "Kara Wilson <kara.wilson.2005.08@gmail.com>",
   "repository": {
