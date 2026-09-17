@@ -6,7 +6,7 @@
   "author": "Kara Wilson <kara.wilson.2005.08@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/KaraZorEl/tree-sitter-grain.git"
+    "url": "git+https://github.com/Kara-Zor-El/tree-sitter-grain.git"
   },
   "type": "module",
   "main": "bindings/node",
