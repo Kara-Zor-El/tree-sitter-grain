@@ -3,8 +3,20 @@
   "version": "0.1.0",
   "description": "Grain grammar for tree-sitter",
   "license": "MIT",
+  "author": "Kara Wilson <kara.wilson.2005.08@gmail.com>",
+  "repository": "https://github.com/KaraZorEl/tree-sitter-grain",
   "type": "module",
   "main": "bindings/node",
+  "types": "bindings/node/index.d.ts",
+  "files": [
+    "grammar.js",
+    "tree-sitter.json",
+    "bindings.gyp",
+    "bindings/node/*",
+    "src/**",
+    "*.wasm",
+    "queries/*"
+  ],
   "dependencies": {
     "node-addon-api": "^8.7.0",
     "node-gyp-build": "^4.8.4"
