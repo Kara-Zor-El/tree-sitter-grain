@@ -6,7 +6,7 @@
 
 ; Neovim: sets 'commentstring' for built-in commenting when treesitter highlights
 ; are active (:help treesitter-highlight-commentstring).
-((program) @_grain (#set! @_grain bo.commentstring "// %s"))
+; ((program) @_grain (#set! @_grain bo.commentstring "// %s"))
 
 ; Comments (`//` line, `/* */` block, `/** */` doc)
 (line_comment) @comment @comment.line @spell
